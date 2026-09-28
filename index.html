@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Trials, Dropouts & Reviews Report</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;700&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<style>
+:root{--bg:#f3f5f8;--card:#fff;--ink:#16202e;--mute:#5d6b7e;--line:#dbe1ea;--acc:#1f5fd6;--good:#12805c;--bad:#b3341f;--warn:#a86a00;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1520;--card:#182131;--ink:#e8edf5;--mute:#93a1b6;--line:#2a374b;--acc:#6b9bff;--good:#4fce9d;--bad:#ff8a73;--warn:#f0b04a}}
+:root[data-theme="dark"]{--bg:#0f1520;--card:#182131;--ink:#e8edf5;--mute:#93a1b6;--line:#2a374b;--acc:#6b9bff;--good:#4fce9d;--bad:#ff8a73;--warn:#f0b04a}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*:before,*:after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:1000px;margin:0 auto;padding:20px 16px 48px}
+h1{font-size:26px;margin:0 0 4px;letter-spacing:-.02em}
+h2{font-size:19px;margin:32px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--ink)}
+h3{font-size:14px;margin:18px 0 6px;color:var(--mute);font-weight:600}
+.sub{color:var(--mute);margin:0 0 18px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+label{display:block;font-weight:600;font-size:13px;margin-bottom:4px}
+input,select{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px}
+input:focus,select:focus,button:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
+.fname{font-size:12px;color:var(--mute);margin-top:4px;word-break:break-all}
+.presets{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 0}
+button{font:inherit;font-size:13px;padding:6px 12px;border-radius:6px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+button:hover{border-color:var(--acc)}
+.kpis{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.kpi b{display:block;font-size:24px;line-height:1.2}
+.kpi span{font-size:12px;color:var(--mute)}
+.wrap{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{padding:7px 10px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left;white-space:normal}
+th{font-weight:600;color:var(--mute);background:var(--bg)}
+tr:last-child td{border-bottom:0}
+.good{color:var(--good)}.bad{color:var(--bad)}.warn{color:var(--warn)}
+.note{font-size:12.5px;color:var(--mute);margin:6px 0}
+.empty{padding:14px;color:var(--mute);background:var(--card);border:1px dashed var(--line);border-radius:8px}
+[hidden]{display:none!important}
+#msg{margin-top:12px;color:var(--bad);font-size:13px}
+</style>
+</head>
+<body>
+<main>
+<h1>Trials, dropouts & reviews report</h1>
+<p class="sub">Upload your two CSV exports, pick a date range, and the counts update instantly. Files stay in your browser.</p>
+
+<div class="panel">
+  <div><label for="fT">Trials CSV</label><input type="file" id="fT" accept=".csv"><div class="fname" id="nT">No file yet</div></div>
+  <div><label for="fD">Dropouts CSV</label><input type="file" id="fD" accept=".csv"><div class="fname" id="nD">No file yet</div></div>
+  <div><label for="fR">Reviews CSV (Google + Trustpilot)</label><input type="file" id="fR" accept=".csv"><div class="fname" id="nR">No file yet</div></div>
+  <div><label for="from">From</label><input type="date" id="from"></div>
+  <div><label for="to">To</label><input type="date" id="to"></div>
+  <div><label for="tf">Filter trials by</label>
+    <select id="tf"><option>Trial Date</option><option>Conversion Date</option><option>Inquiry Date</option></select></div>
+  <div><label for="df">Filter dropouts by</label>
+    <select id="df"><option value="Dropout Month">Dropout month</option><option value="Follow-up Date">Follow-up date</option><option value="Resumption Date">Resumption date</option></select></div>
+</div>
+<div class="presets">
+  <button data-p="7">Last 7 days</button><button data-p="30">Last 30 days</button>
+  <button data-p="month">This month</button><button data-p="lastmonth">Last month</button><button data-p="all">All dates</button>
+</div>
+<div id="msg"></div>
+<div id="out"></div>
+</main>
+
+<script>
+var T=[],D=[],R=[];
+var $=function(i){return document.getElementById(i)};
+var esc=function(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})};
+
+function load(input,label,cb){
+  var f=input.files[0]; if(!f)return;
+  Papa.parse(f,{header:true,skipEmptyLines:true,transformHeader:function(h){return h.trim()},complete:function(r){
+    $(label).textContent=f.name+' ('+r.data.length+' rows)'; cb(r.data); run();
+  }});
+}
+$('fT').onchange=function(){load(this,'nT',function(d){T=d})};
+$('fD').onchange=function(){load(this,'nD',function(d){D=d})};
+$('fR').onchange=function(){load(this,'nR',function(d){R=d})};
+
+function pd(s){
+  s=(s||'').trim(); var m;
+  if(m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/)){var y=+m[3]; if(y<100)y+=2000; if(y<2000)return null; return new Date(y,m[1]-1,+m[2]);}
+  if(m=s.match(/^(\d{4})-(\d{2})(?:-(\d{2}))?/)) return new Date(+m[1],m[2]-1,+(m[3]||1));
+  if(/[A-Za-z]{3}/.test(s)&&/\d{4}/.test(s)){var t=new Date(s); if(!isNaN(t)&&t.getFullYear()>=2000)return new Date(t.getFullYear(),t.getMonth(),t.getDate())}
+  return null;
+}
+function inp(id,end){var v=$(id).value; if(!v)return null; var p=v.split('-'); return new Date(+p[0],p[1]-1,+p[2]);}
+function money(s){var n=parseFloat(String(s||'').replace(/[^0-9.]/g,'')); return isNaN(n)?0:n}
+function fmt$(n){return '$'+Math.round(n).toLocaleString('en-US')}
+function cap(s){return s?s.charAt(0).toUpperCase()+s.slice(1):s}
+
+function nSource(s){s=(s||'').trim().toLowerCase(); if(!s||s==='unknown')return 'Unknown'; if(s==='google search')s='google'; return cap(s)}
+function nInterest(s){s=(s||'').trim().toLowerCase().replace(/beginners/,'beginner'); return s?cap(s):'Not specified'}
+function nTeacher(s){s=(s||'').trim(); return s||'Unassigned'}
+function nCat(s){s=(s||'').trim().toLowerCase().replace(/\s*\(\s*/,' ('); return s?cap(s):'Uncategorised'}
+function nModule(s){s=(s||'').trim(); return s||'Not specified'}
+function stat(s){s=(s||'').trim().toLowerCase(); return s==='enrolled'?'enr':s==='lost'?'lost':s==='did not join'?'dnj':s==='trial booked'?'bkd':s==='trial completed'?'cmp':'other'}
+
+function kpis(list){return '<div class="kpis">'+list.map(function(k){return '<div class="kpi"><b class="'+(k[2]||'')+'">'+k[0]+'</b><span>'+k[1]+'</span></div>'}).join('')+'</div>'}
+function pct(a,b){return b?(a/b*100).toFixed(1)+'%':'–'}
+
+function table(rows,keyFn,cols){
+  var g={};
+  rows.forEach(function(r){var k=keyFn(r); (g[k]=g[k]||[]).push(r)});
+  var keys=Object.keys(g).sort(function(a,b){return g[b].length-g[a].length||a.localeCompare(b)});
+  var h='<div class="wrap"><table><tr><th></th>'+cols.map(function(c){return '<th>'+c[0]+'</th>'}).join('')+'</tr>';
+  keys.forEach(function(k){h+='<tr><td>'+esc(k)+'</td>'+cols.map(function(c){return '<td>'+c[1](g[k])+'</td>'}).join('')+'</tr>'});
+  return h+'</table></div>';
+}
+function cnt(s){return function(a){return a.filter(function(r){return stat(r['Status'])===s}).length}}
+
+var tCols=[['Trials',function(a){return a.length}],['Enrolled',cnt('enr')],['Lost',cnt('lost')],['Did not join',cnt('dnj')],['Trial Booked',cnt('bkd')],['Trial Completed',cnt('cmp')],
+  ['Conv. rate',function(a){var e=cnt('enr')(a);return pct(e,e+cnt('lost')(a)+cnt('dnj')(a))}]];
+
+function run(){
+  var from=inp('from'),to=inp('to'),out='',msg='';
+  if(from&&to&&from>to){$('msg').textContent='The start date is after the end date.';return}
+  $('msg').textContent='';
+  var inR=function(d){return d&&(!from||d>=from)&&(!to||d<=to)};
+  var range=(from?$('from').value:'start')+' to '+(to?$('to').value:'end');
+
+  /* ---------- TRIALS ---------- */
+  out+='<h2>Trials</h2>';
+  if(!T.length){out+='<div class="empty">Upload the trials CSV to see this section.</div>'}
+  else{
+    var f=$('tf').value, bad=0;
+    var rows=T.filter(function(r){var d=pd(r[f]); if(!d){bad++;return false} return inR(d)});
+    var e=cnt('enr')(rows),l=cnt('lost')(rows),n=cnt('dnj')(rows),bk=cnt('bkd')(rows),cm=cnt('cmp')(rows);
+    out+='<p class="note">Filtered on <b>'+esc(f)+'</b>, '+range+'. Conversion rate = Enrolled ÷ (Enrolled + Lost + Did not join); Trial Booked and Trial Completed are still undecided, so they are left out of the rate.'+(bad?' '+bad+' row(s) have no usable '+esc(f)+' and are not counted.':'')+'</p>';
+    out+=kpis([[rows.length,'Trials'],[e,'Enrolled','good'],[l,'Lost','bad'],[n,'Did not join','bad'],[bk,'Trial Booked','warn'],[cm,'Trial Completed','warn'],[pct(e,e+l+n),'Conversion rate']]);
+    if(rows.length){
+      out+='<h3>By status</h3>'+table(rows,function(r){var s=(r['Status']||'').trim();return s||'No status'},[['Trials',function(a){return a.length}],['Share',function(a){return pct(a.length,rows.length)}]]);
+      out+='<h3>By acquisition source</h3>'+table(rows,function(r){return nSource(r['Acquisition Source'])},tCols);
+      out+='<h3>By teacher</h3>'+table(rows,function(r){return nTeacher(r['Assigned To'])},tCols);
+      out+='<h3>By interest area</h3>'+table(rows,function(r){return nInterest(r['Interest Area'])},tCols);
+    } else out+='<div class="empty" style="margin-top:12px">No trials fall in this range.</div>';
+  }
+
+  /* ---------- DROPOUTS / RESUMPTIONS (one at a time) ---------- */
+  var df=$('df').value, resMode=df==='Resumption Date', dbad=0;
+  out+='<h2>'+(resMode?'Resumptions':'Dropouts')+'</h2>';
+  var isHold=function(r){return (r['Status']||'').trim().toLowerCase()==='hold'};
+  var isDisc=function(r){return (r['Status']||'').trim().toLowerCase()==='discontinue'};
+  var ltv=function(a){return a.reduce(function(s,r){return s+money(r['Total Amount'])},0)};
+  var mKey=function(m){return m.getFullYear()+'-'+String(m.getMonth()+1).padStart(2,'0')};
+  if(!D.length){out+='<div class="empty">Upload the dropouts CSV to see this section.</div>'}
+  else if(resMode){
+    var rs=D.filter(function(r){var d=pd(r['Resumption Date']); if(!d){dbad++;return false} return inR(d)});
+    out+='<p class="note">Students whose <b>Resumption Date</b> falls in '+range+'. Students with no Resumption Date are not counted.</p>';
+    out+=kpis([[rs.length,'Students resumed','good'],[fmt$(ltv(rs)),'Lifetime value of these students']]);
+    if(rs.length){
+      var rc=[['Students',function(a){return a.length}],['Lifetime value',function(a){return fmt$(ltv(a))}]];
+      out+='<h3>By month of resumption</h3>'+table(rs,function(r){return mKey(pd(r['Resumption Date']))},rc);
+      out+='<h3>By module</h3>'+table(rs,function(r){return nModule(r['Module'])},rc);
+      out+='<h3>By teacher</h3>'+table(rs,function(r){return nTeacher(r['Teacher'])},rc);
+      out+='<h3>Students who resumed</h3><div class="wrap"><table><tr><th>Student</th><th>Module</th><th>Teacher</th><th>Resumption date</th></tr>'+
+        rs.map(function(r){return '<tr><td>'+esc(r['Student Name']||'')+'</td><td>'+esc(nModule(r['Module']))+'</td><td>'+esc(nTeacher(r['Teacher']))+'</td><td>'+esc(r['Resumption Date'])+'</td></tr>'}).join('')+'</table></div>';
+    } else out+='<div class="empty" style="margin-top:12px">No resumptions in this range. Check that the Resumption Date column is filled in.</div>';
+  }
+  else{
+    var dOf=function(r){return df==='Dropout Month'?(pd(r['Dropout Month'])||pd(r['Left Month'])):pd(r[df])};
+    var dr=D.filter(function(r){
+      var m=dOf(r); if(!m){dbad++;return false}
+      if(df!=='Dropout Month')return inR(m);
+      var end=new Date(m.getFullYear(),m.getMonth()+1,0);
+      return (!from||end>=from)&&(!to||m<=to);
+    });
+    var hold=dr.filter(isHold).length,disc=dr.filter(isDisc).length;
+    out+='<p class="note">Filtered on <b>'+esc(df)+'</b>, '+range+'.'+(df==='Dropout Month'?' Dropout dates are recorded by month, so any student whose dropout month overlaps the range is included.':'')+(dbad?' '+dbad+' student(s) have no usable '+esc(df)+' and are not counted.':'')+' Lifetime value is each student’s total spend.</p>';
+    out+=kpis([[dr.length,'Students dropped'],[hold,'On hold','warn'],[disc,'Discontinued','bad'],[fmt$(ltv(dr)),'Lifetime value of these students']]);
+    if(dr.length){
+      var dc=[['Students',function(a){return a.length}],['Hold',function(a){return a.filter(isHold).length}],['Discontinued',function(a){return a.filter(isDisc).length}],['Lifetime value',function(a){return fmt$(ltv(a))}]];
+      out+='<h3>By month ('+esc(df)+')</h3>'+table(dr,function(r){return mKey(dOf(r))},dc);
+      out+='<h3>By module</h3>'+table(dr,function(r){return nModule(r['Module'])},dc);
+      out+='<h3>By teacher</h3>'+table(dr,function(r){return nTeacher(r['Teacher'])},dc);
+      out+='<h3>By reason category</h3>'+table(dr,function(r){return nCat(r['Comment Category'])},dc);
+    } else out+='<div class="empty" style="margin-top:12px">No dropouts fall in this range.</div>';
+  }
+  /* ---------- REVIEWS ---------- */
+  out+='<h2>Reviews</h2>';
+  if(!R.length){out+='<div class="empty">Upload the reviews CSV to see this section.</div>'}
+  else{
+    var everything=!from&&!to,ev=[],undated={Google:0,Trustpilot:0},title=function(t){return t.toLowerCase().replace(/(^|\s)\S/g,function(c){return c.toUpperCase()})};
+    R.forEach(function(r){
+      [['Google','Google Review','Google Review Date','Google Teacher'],['Trustpilot','Trustpilot Review','Trustpilot Review Date','Trustpilot Teacher']].forEach(function(p){
+        if((r[p[1]]||'').trim().toLowerCase()!=='yes')return;
+        var d=pd(r[p[2]]),t=(r[p[3]]||'').trim();
+        if(!everything&&!d){undated[p[0]]++;return}
+        if(!everything&&!inR(d))return;
+        ev.push({p:p[0],d:d,ds:(r[p[2]]||'').trim(),t:t?title(t):'No teacher recorded',r:r});
+      });
+    });
+    var g=ev.filter(function(e){return e.p==='Google'}).length,tp=ev.length-g,by={};
+    ev.forEach(function(e){var x=by[e.t]=by[e.t]||{Google:0,Trustpilot:0,n:0}; x[e.p]++; x.n++});
+    var un=undated.Google+undated.Trustpilot;
+    out+='<p class="note">Reviews with a review date in '+range+'. Each student counts once per platform.'+(un?' <b>'+undated.Google+' Google and '+undated.Trustpilot+' Trustpilot review(s) are marked “Yes” but have no date, so they can’t be placed in this range.</b> Choose “All dates” to include them.':'')+'</p>';
+    out+=kpis([[ev.length,'Total reviews'],[g,'Google','good'],[tp,'Trustpilot','good']]);
+    var ks=Object.keys(by).sort(function(a,b){return by[b].n-by[a].n||a.localeCompare(b)});
+    if(ks.length){
+      out+='<h3>By teacher</h3><div class="wrap"><table><tr><th>Teacher</th><th>Google</th><th>Trustpilot</th><th>Total</th></tr>'+
+        ks.map(function(k){var e=by[k];return '<tr><td>'+esc(k)+'</td><td>'+e.Google+'</td><td>'+e.Trustpilot+'</td><td><b>'+e.n+'</b></td></tr>'}).join('')+'</table></div>';
+      ev.sort(function(a,b){return (b.d?+b.d:0)-(a.d?+a.d:0)});
+      out+='<h3>All reviews in range</h3><div class="wrap"><table><tr><th style="text-align:left">Date</th><th style="text-align:left">Platform</th><th style="text-align:left">Student</th><th style="text-align:left">Sibling</th><th style="text-align:left">Teacher</th><th style="text-align:left">Comments</th></tr>'+
+        ev.map(function(e){return '<tr><td style="text-align:left">'+esc(e.ds||'No date')+'</td><td style="text-align:left">'+e.p+'</td><td style="text-align:left">'+esc((e.r['Student Name']||'').trim())+'</td><td style="text-align:left">'+esc((e.r['Sibling Name']||'').trim())+'</td><td style="text-align:left">'+esc(e.t)+'</td><td style="text-align:left;white-space:normal">'+esc((e.r['Comments']||'').trim())+'</td></tr>'}).join('')+'</table></div>';
+    } else out+='<div class="empty" style="margin-top:12px">No dated reviews fall in this range.</div>';
+  }
+  $('out').innerHTML=out;
+}
+
+function fmtIn(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+document.querySelectorAll('[data-p]').forEach(function(b){b.onclick=function(){
+  var p=b.dataset.p,now=new Date(),t=new Date(now.getFullYear(),now.getMonth(),now.getDate()),f=null,e=t;
+  if(p==='all'){$('from').value='';$('to').value='';run();return}
+  if(p==='month')f=new Date(t.getFullYear(),t.getMonth(),1);
+  else if(p==='lastmonth'){f=new Date(t.getFullYear(),t.getMonth()-1,1);e=new Date(t.getFullYear(),t.getMonth(),0)}
+  else f=new Date(t.getFullYear(),t.getMonth(),t.getDate()-(+p-1));
+  $('from').value=fmtIn(f);$('to').value=fmtIn(e);run();
+}});
+['from','to','tf','df'].forEach(function(i){$(i).onchange=run});
+run();
+</script>
+</body>
+</html>
