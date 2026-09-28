@@ -6,6 +6,14 @@
 :root{--bg:#f7f7f5;--card:#fff;--tx:#1d1d1b;--mu:#6b6b66;--bd:#e2e2dc;--ac:#2f6fed;--g1:#1e8e3e;--g2:#8bc98f;--y:#f2c94c;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161615;--card:#212120;--tx:#efefea;--mu:#9a9a94;--bd:#33332f;--ac:#6a9bff}}
 :root[data-theme="dark"]{--bg:#161615;--card:#212120;--tx:#efefea;--mu:#9a9a94;--bd:#33332f;--ac:#6a9bff}
+:root[data-theme="ocean"]{--bg:#eaf4fb;--card:#fff;--tx:#0d2b3e;--mu:#547189;--bd:#cfe2ef;--ac:#0b7fc4}
+:root[data-theme="forest"]{--bg:#eef5ee;--card:#fff;--tx:#1a2e1c;--mu:#5d7a5f;--bd:#d3e3d3;--ac:#2e7d32}
+:root[data-theme="sunset"]{--bg:#fff3e8;--card:#fffaf5;--tx:#3a1f10;--mu:#8a6650;--bd:#f2d9c4;--ac:#e2571e}
+:root[data-theme="purple"]{--bg:#f3effb;--card:#fff;--tx:#25153f;--mu:#71628f;--bd:#e0d6f2;--ac:#7c3aed}
+:root[data-theme="rose"]{--bg:#fdf0f3;--card:#fff;--tx:#3b1420;--mu:#8c5d6c;--bd:#f3d5dd;--ac:#d6336c}
+:root[data-theme="midnight"]{--bg:#0b1020;--card:#141b30;--tx:#e6ebff;--mu:#8e9ac2;--bd:#26304d;--ac:#7aa2ff}
+:root[data-theme="mocha"]{--bg:#1e1a17;--card:#2a2420;--tx:#f0e6dc;--mu:#a8968a;--bd:#3f362f;--ac:#d9a066}
+select{font:inherit;color:var(--tx);background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:7px 10px;cursor:pointer}
 *{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
 body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
 .w{max-width:960px;margin:0 auto;padding:20px 16px 48px}
@@ -26,7 +34,7 @@ th,td{text-align:left;padding:8px;border-bottom:1px solid var(--bd);vertical-ali
 .m{background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:10px;white-space:pre-wrap;margin:6px 0;font-size:13px}
 .mu{color:var(--mu)}.err{color:#c0392b;font-size:13px}
 </style></head><body><div class="w">
-<h1>Review Asks Tracker</h1>
+<div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h1>Review Asks Tracker</h1><select id="th" title="Change theme"><option value="">🌓 Theme: Auto</option><option value="light">Light</option><option value="dark">Dark</option><option value="ocean">Ocean</option><option value="forest">Forest</option><option value="sunset">Sunset</option><option value="purple">Purple</option><option value="rose">Rose</option><option value="midnight">Midnight</option><option value="mocha">Mocha</option></select></div>
 <p class="s">Paste Progress Discussion data and see every review ask (Day 0, 2, 3, 5, 7, 15, 30).</p>
 <div class="c">
 <label>Progress Discussion data (Class / Date / Teacher / Category / Link, repeated)</label>
@@ -47,6 +55,7 @@ const SEQ=[[0,"Teacher","Initial Request"],[2,"Core Team","Reminder"],[3,"Core T
 const $=id=>document.getElementById(id);
 let rows=[],sender="All";
 const iso=d=>d.toISOString().slice(0,10);
+const todayISO=()=>{const n=new Date();return n.getFullYear()+"-"+String(n.getMonth()+1).padStart(2,"0")+"-"+String(n.getDate()).padStart(2,"0")};
 const fmt=s=>new Date(s+"T00:00:00Z").toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric",year:"numeric",timeZone:"UTC"});
 function colour(d){return d===0?["#1e8e3e","Dark green"]:d<=7?["#8bc98f","Light green"]:["#f2c94c","Yellow"]}
 function parse(t){
@@ -75,11 +84,11 @@ function msgText(d,r,link){
   return M[d];
 }
 function asks(){
-  const link="https://shorturl.at/esE58",f=$("from").value,t=$("to").value,a=[];
+  const link="https://shorturl.at/esE58",f=$("from").value,t=$("to").value,td=todayISO(),a=[];
   rows.forEach(r=>SEQ.forEach(([d,s,ty])=>{
     const dt=new Date(r.date+"T00:00:00Z");dt.setUTCDate(dt.getUTCDate()+d);
     const due=iso(dt);
-    if((!f||due>=f)&&(!t||due<=t))a.push({due,d,s,ty,r,text:msgText(d,r,link)});
+    if(due<=td&&(!f||due>=f)&&(!t||due<=t))a.push({due,d,s,ty,r,text:msgText(d,r,link)});
   }));
   return a.sort((x,y)=>x.due.localeCompare(y.due)||x.d-y.d||x.r.cls.localeCompare(y.r.cls));
 }
@@ -87,7 +96,8 @@ function render(){
   const all=asks(),a=all.filter(x=>sender==="All"||x.s===sender);
   const cnt=k=>all.filter(x=>x.s===k).length;
   const groups={};a.forEach(x=>(groups[x.due]=groups[x.due]||[]).push(x));
-  let h=`<div class="st"><div class="k"><b>${all.length}</b><span>Total asks</span></div><div class="k"><b>${cnt("Teacher")}</b><span>Teacher asks</span></div><div class="k"><b>${cnt("Core Team")}</b><span>Core Team asks</span></div><div class="k"><b>${all.filter(x=>x.d===0).length}</b><span>New Day 0 asks</span></div></div>
+  let h=`<div class="st"><div class="k"><b>${all.length}</b><span>Total asks</span></div><div class="k"><b>${cnt("Teacher")}</b><span>Teacher asks</span></div><div class="k"><b>${cnt("Core Team")}</b><span>Core Team asks</span></div><div class="k"><b>${all.filter(x=>x.d===0).length}</b><span>Day 0 asks (new discussions)</span></div></div>
+<div class="mu" style="font-size:13px;margin-bottom:10px">By day: ${[0,2,3,5,7,15,30].map(d=>`Day ${d}: <b>${all.filter(x=>x.d===d).length}</b>`).join(" · ")} &nbsp;(only asks due up to today are counted)</div>
 <div class="c"><div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">${["All","Teacher","Core Team"].map(s=>`<button class="${s===sender?"on":""}" data-s="${s}">${s}</button>`).join("")}<button id="cp" style="margin-left:auto">Copy as table</button></div>`;
   if(!a.length)h+=`<p class="mu">No asks fall in this date range.</p>`;
   else h+=`<div class="tw"><table><tr><th>Due</th><th>Day</th><th>Sender</th><th>Type</th><th>Class</th><th>Teacher</th><th></th></tr>`+
@@ -125,5 +135,8 @@ function hint(){
 ["from","to"].forEach(id=>$(id).onchange=()=>{hint();rows.length&&render()});
 $("clr").onclick=()=>{$("from").value="";$("to").value="";hint();rows.length&&render()};
 hint();
+function setTheme(t){const r=document.documentElement;t?r.dataset.theme=t:delete r.dataset.theme;$("th").value=t||""}
+try{setTheme(localStorage.getItem("soc_theme")||"")}catch(e){}
+$("th").onchange=e=>{setTheme(e.target.value);try{localStorage.setItem("soc_theme",e.target.value)}catch(x){}};
 try{const v=localStorage.getItem("soc_in");if(v)$("in").value=v}catch(e){}
 </script></body></html>
