@@ -37,6 +37,7 @@ th,td{text-align:left;padding:8px;border-bottom:1px solid var(--bd);vertical-ali
 <button id="clr">Clear dates</button>
 <button class="p" id="go">Get asks</button>
 </div>
+<div id="hint" style="margin-top:10px;font-size:13px;padding:8px 10px;border-radius:8px;background:var(--bg);border:1px solid var(--bd)"></div>
 <div id="msg" class="err"></div>
 </div>
 <div id="out"></div>
@@ -107,10 +108,22 @@ $("go").onclick=()=>{
   rows=parse($("in").value);
   if(!rows.length){$("msg").textContent="No records found. Each record needs a date line like 09/25/26.";$("out").innerHTML="";return}
   $("msg").textContent=`${rows.length} progress discussions parsed.`;
+  hint();
   try{localStorage.setItem("soc_in",$("in").value)}catch(e){}
   render();
 };
-["from","to"].forEach(id=>$(id).onchange=()=>rows.length&&render());
-$("clr").onclick=()=>{$("from").value="";$("to").value="";rows.length&&render()};
+function hint(){
+  const f=$("from").value,t=$("to").value,h=$("hint");
+  if(!f){h.innerHTML="Select a <b>From</b> date to see how far back to paste data.";return}
+  const d=new Date(f+"T00:00:00Z");d.setUTCDate(d.getUTCDate()-30);
+  const st=iso(d),n=new Date(),today=n.getFullYear()+"-"+String(n.getMonth()+1).padStart(2,"0")+"-"+String(n.getDate()).padStart(2,"0");
+  const en=(t&&t<today)?t:today;
+  let x=`Paste Progress Discussions dated <b>${fmt(st)}</b> to <b>${fmt(en)}</b> for exact counts.`;
+  if(rows.length){const m=rows.map(r=>r.date).sort()[0];if(m>st)x+=`<br><span style="color:#c0392b">Your data starts ${fmt(m)}, so Day 15 and Day 30 counts near the start of your range may be low.</span>`}
+  h.innerHTML=x;
+}
+["from","to"].forEach(id=>$(id).onchange=()=>{hint();rows.length&&render()});
+$("clr").onclick=()=>{$("from").value="";$("to").value="";hint();rows.length&&render()};
+hint();
 try{const v=localStorage.getItem("soc_in");if(v)$("in").value=v}catch(e){}
 </script></body></html>
