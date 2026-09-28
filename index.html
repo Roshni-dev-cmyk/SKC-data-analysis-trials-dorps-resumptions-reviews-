@@ -132,7 +132,7 @@ function run(){
     var rows=T.filter(function(r){var d=pd(r[f]); if(!d){bad++;return false} return inR(d)});
     var e=cnt('enr')(rows),l=cnt('lost')(rows),n=cnt('dnj')(rows),bk=cnt('bkd')(rows),cm=cnt('cmp')(rows);
     out+='<p class="note">Filtered on <b>'+esc(f)+'</b>, '+range+'. Conversion rate = Enrolled ÷ (Enrolled + Lost + Did not join); Trial Booked and Trial Completed are still undecided, so they are left out of the rate.'+(bad?' '+bad+' row(s) have no usable '+esc(f)+' and are not counted.':'')+'</p>';
-    out+=kpis([[rows.length,'Trials'],[e,'Enrolled','good'],[l,'Lost','bad'],[n,'Did not join','bad'],[bk,'Trial Booked','warn'],[cm,'Trial Completed','warn']]);
+    out+=kpis([[rows.length,'Trials'],[e,'Enrolled','good'],[l,'Lost','bad'],[n,'Did not join','bad'],[bk,'Trial Booked','warn'],[cm,'Trial Completed','warn'],[pct(e,e+l+n),'Conversion rate']]);
     if(rows.length){
       out+='<h3>By status</h3>'+table(rows,function(r){var s=(r['Status']||'').trim();return s||'No status'},[['Trials',function(a){return a.length}],['Share',function(a){return pct(a.length,rows.length)}]]);
       out+='<h3>By acquisition source</h3>'+table(rows,function(r){return nSource(r['Acquisition Source'])},tCols);
@@ -154,12 +154,8 @@ function run(){
     out+='<p class="note">Students whose <b>Resumption Date</b> falls in '+range+'. Students with no Resumption Date are not counted.</p>';
     out+=kpis([[rs.length,'Students resumed','good'],[fmt$(ltv(rs)),'Lifetime value of these students']]);
     if(rs.length){
-      var rc=[['Students',function(a){return a.length}],['Lifetime value',function(a){return fmt$(ltv(a))}]];
-      out+='<h3>By month of resumption</h3>'+table(rs,function(r){return mKey(pd(r['Resumption Date']))},rc);
-      out+='<h3>By module</h3>'+table(rs,function(r){return nModule(r['Module'])},rc);
-      out+='<h3>By teacher</h3>'+table(rs,function(r){return nTeacher(r['Teacher'])},rc);
-      out+='<h3>Students who resumed</h3><div class="wrap"><table><tr><th>Student</th><th>Module</th><th>Teacher</th><th>Resumption date</th></tr>'+
-        rs.map(function(r){return '<tr><td>'+esc(r['Student Name']||'')+'</td><td>'+esc(nModule(r['Module']))+'</td><td>'+esc(nTeacher(r['Teacher']))+'</td><td>'+esc(r['Resumption Date'])+'</td></tr>'}).join('')+'</table></div>';
+      out+='<h3>Students who resumed</h3><div class="wrap"><table><tr><th>Student</th><th>Module</th><th>Resumption date</th></tr>'+
+        rs.map(function(r){return '<tr><td>'+esc(r['Student Name']||'')+'</td><td>'+esc(nModule(r['Module']))+'</td><td>'+esc(r['Resumption Date'])+'</td></tr>'}).join('')+'</table></div>';
     } else out+='<div class="empty" style="margin-top:12px">No resumptions in this range. Check that the Resumption Date column is filled in.</div>';
   }
   else{
