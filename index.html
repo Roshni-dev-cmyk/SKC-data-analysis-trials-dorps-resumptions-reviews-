@@ -7,9 +7,13 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;700&display=swap">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <style>
-:root{--bg:#f3f5f8;--card:#fff;--ink:#f3f5f8;--mute:#5d6b7e;--line:#dbe1ea;--acc:#1f5fd6;--good:#12805c;--bad:#b3341f;--warn:#a86a00;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1520;--card:#182131;--ink:#f3f5f8;--mute:#93a1b6;--line:#2a374b;--acc:#6b9bff;--good:#4fce9d;--bad:#ff8a73;--warn:#f0b04a}}
-:root[data-theme="dark"]{--bg:#0f1520;--card:#182131;--ink:#f3f5f8;--mute:#93a1b6;--line:#2a374b;--acc:#6b9bff;--good:#4fce9d;--bad:#ff8a73;--warn:#f0b04a}
+:root{--bg:#f3f5f8;--card:#fff;--ink:#16202e;--mute:#5d6b7e;--line:#dbe1ea;--acc:#1f5fd6;--good:#12805c;--bad:#b3341f;--warn:#a86a00;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1520;--card:#182131;--ink:#e8edf5;--mute:#93a1b6;--line:#2a374b;--acc:#6b9bff;--good:#4fce9d;--bad:#ff8a73;--warn:#f0b04a}}
+:root[data-theme="dark"]{--bg:#0f1520;--card:#182131;--ink:#e8edf5;--mute:#93a1b6;--line:#2a374b;--acc:#6b9bff;--good:#4fce9d;--bad:#ff8a73;--warn:#f0b04a}
+:root[data-theme="forest"]{--bg:#eef4ef;--card:#fff;--ink:#14261c;--mute:#586b5f;--line:#d3e0d6;--acc:#1d7a4a;--good:#12805c;--bad:#b3341f;--warn:#a86a00}
+:root[data-theme="plum"]{--bg:#f6f1f8;--card:#fff;--ink:#241530;--mute:#6b5a78;--line:#e2d6ea;--acc:#7b3fb0;--good:#12805c;--bad:#b3341f;--warn:#a86a00}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.top select{width:auto}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *,*:before,*:after{box-sizing:inherit}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
@@ -45,7 +49,8 @@ tr:last-child td{border-bottom:0}
 </head>
 <body>
 <main>
-<h1>Trials, dropouts & reviews report</h1>
+<div class="top"><h1>Trials, dropouts & reviews report</h1>
+<select id="theme" aria-label="Theme"><option value="auto">Auto</option><option value="light">Light</option><option value="dark">Dark</option><option value="forest">Forest</option><option value="plum">Plum</option></select></div>
 <p class="sub">Upload your two CSV exports, pick a date range, and the counts update instantly. Files stay in your browser.</p>
 
 <div class="panel">
@@ -69,6 +74,12 @@ tr:last-child td{border-bottom:0}
 
 <script>
 var T=[],D=[],R=[];
+function setTheme(t){
+  var r=document.documentElement; if(t==='auto')r.removeAttribute('data-theme'); else r.setAttribute('data-theme',t);
+  try{localStorage.setItem('theme',t)}catch(e){}
+}
+(function(){var t='auto'; try{t=localStorage.getItem('theme')||'auto'}catch(e){} document.getElementById('theme').value=t; setTheme(t)})();
+document.getElementById('theme').onchange=function(){setTheme(this.value)};
 var $=function(i){return document.getElementById(i)};
 var esc=function(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})};
 
