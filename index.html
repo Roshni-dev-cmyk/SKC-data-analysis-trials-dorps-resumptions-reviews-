@@ -132,7 +132,7 @@ function run(){
     var rows=T.filter(function(r){var d=pd(r[f]); if(!d){bad++;return false} return inR(d)});
     var e=cnt('enr')(rows),l=cnt('lost')(rows),n=cnt('dnj')(rows),bk=cnt('bkd')(rows),cm=cnt('cmp')(rows);
     out+='<p class="note">Filtered on <b>'+esc(f)+'</b>, '+range+'. Conversion rate = Enrolled ÷ (Enrolled + Lost + Did not join); Trial Booked and Trial Completed are still undecided, so they are left out of the rate.'+(bad?' '+bad+' row(s) have no usable '+esc(f)+' and are not counted.':'')+'</p>';
-    out+=kpis([[rows.length,'Trials'],[e,'Enrolled','good'],[l,'Lost','bad'],[n,'Did not join','bad'],[bk,'Trial Booked','warn'],[cm,'Trial Completed','warn'],[pct(e,e+l+n),'Conversion rate']]);
+    out+=kpis([[rows.length,'Trials'],[e,'Enrolled','good'],[l,'Lost','bad'],[n,'Did not join','bad'],[bk,'Trial Booked','warn'],[cm,'Trial Completed','warn']]);
     if(rows.length){
       out+='<h3>By status</h3>'+table(rows,function(r){var s=(r['Status']||'').trim();return s||'No status'},[['Trials',function(a){return a.length}],['Share',function(a){return pct(a.length,rows.length)}]]);
       out+='<h3>By acquisition source</h3>'+table(rows,function(r){return nSource(r['Acquisition Source'])},tCols);
