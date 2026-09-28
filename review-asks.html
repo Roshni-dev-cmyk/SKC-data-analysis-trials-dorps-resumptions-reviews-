@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SkoolOfCode Review Asks</title>
+<style>
+:root{--bg:#f7f7f5;--card:#fff;--tx:#1d1d1b;--mu:#6b6b66;--bd:#e2e2dc;--ac:#2f6fed;--g1:#1e8e3e;--g2:#8bc98f;--y:#f2c94c;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161615;--card:#212120;--tx:#efefea;--mu:#9a9a94;--bd:#33332f;--ac:#6a9bff}}
+:root[data-theme="dark"]{--bg:#161615;--card:#212120;--tx:#efefea;--mu:#9a9a94;--bd:#33332f;--ac:#6a9bff}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+.w{max-width:960px;margin:0 auto;padding:20px 16px 48px}
+h1{font-size:22px;margin:0 0 4px}p.s{color:var(--mu);margin:0 0 16px}
+.c{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:16px;margin-bottom:16px}
+textarea,input{width:100%;font:inherit;color:var(--tx);background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:8px}
+textarea{min-height:140px;font-size:13px;font-family:ui-monospace,Menlo,monospace}
+.r{display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin-top:12px}
+.r>div{flex:1;min-width:150px}label{font-size:12px;color:var(--mu);display:block;margin-bottom:4px}
+button{font:inherit;border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:8px;padding:7px 12px;cursor:pointer}
+button.p{background:var(--ac);color:#fff;border-color:var(--ac)}button.on{border-color:var(--ac);color:var(--ac);font-weight:600}
+.st{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.k{flex:1;min-width:110px;background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:10px}
+.k b{font-size:22px;display:block}.k span{font-size:12px;color:var(--mu)}
+.tw{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:8px;border-bottom:1px solid var(--bd);vertical-align:top}th{font-size:12px;color:var(--mu)}
+.d{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
+.m{background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:10px;white-space:pre-wrap;margin:6px 0;font-size:13px}
+.mu{color:var(--mu)}.err{color:#c0392b;font-size:13px}
+</style></head><body><div class="w">
+<h1>Review Asks Tracker</h1>
+<p class="s">Paste Progress Discussion data and see every review ask (Day 0, 2, 3, 5, 7, 15, 30).</p>
+<div class="c">
+<label>Progress Discussion data (Class / Date / Teacher / Category / Link, repeated)</label>
+<textarea id="in" placeholder="US (CG) G79-3 Introduction to Python Fri 6:00 PM EST&#10;09/25/26&#10;Chandani Gupta&#10;Coding&#10;https://..."></textarea>
+<div class="r">
+<div><label>From</label><input type="date" id="from"></div>
+<div><label>To</label><input type="date" id="to"></div>
+<button id="clr">Clear dates</button>
+<button class="p" id="go">Get asks</button>
+</div>
+<div id="msg" class="err"></div>
+</div>
+<div id="out"></div>
+</div>
+<script>
+const SEQ=[[0,"Teacher","Initial Request"],[2,"Core Team","Reminder"],[3,"Core Team","First Follow-up"],[5,"Core Team","Second Follow-up"],[7,"Teacher","Third Follow-up"],[15,"Core Team","Fourth Follow-up"],[30,"Core Team","Closing Follow-up"]];
+const $=id=>document.getElementById(id);
+let rows=[],sender="All";
+const iso=d=>d.toISOString().slice(0,10);
+const fmt=s=>new Date(s+"T00:00:00Z").toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric",year:"numeric",timeZone:"UTC"});
+function colour(d){return d===0?["#1e8e3e","Dark green"]:d<=7?["#8bc98f","Light green"]:["#f2c94c","Yellow"]}
+function parse(t){
+  const L=t.split(/\r?\n/).map(x=>x.trim()).filter(Boolean),out=[];
+  for(let i=1;i<L.length;i++){
+    const m=L[i].match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+    if(!m)continue;
+    let y=+m[3];if(y<100)y+=2000;
+    const date=`${y}-${String(m[1]).padStart(2,"0")}-${String(m[2]).padStart(2,"0")}`;
+    const nx=L[i+3]||"";
+    out.push({cls:L[i-1],date,teacher:L[i+1]||"",cat:L[i+2]||"",link:/^http/.test(nx)?nx:""});
+  }
+  return out;
+}
+function msgText(d,r,link){
+  const T=r.teacher,S="[Student Name]",P="[Parent Name]";
+  const cta=`⭐ Leave a Review: ${link}`;
+  const M={
+0:`Dear Parent,\n\nThank you for joining the progress discussion. It was great connecting with you and hearing your feedback. It would mean a lot to us if you could take one minute to rate SkoolOfCode.\n\n⭐ Rate SkoolOfCode: ${link}\n\nYour support means a lot to our team and truly motivates us.\n\nThank you again for your time and support.`,
+2:`Dear ${P},\n\nGreetings from the SkoolOfCode team.\n\nFollowing your recent Progress Discussion with ${T}, we would like to follow up on our earlier review request.\n\n${cta}\n\nYour review is valuable to us and means a lot to our team.\n\nThank you for your continued trust and support.`,
+3:`Dear ${P},\n\nJust following up on the review request.\n\nIf you've had a positive experience with SkoolOfCode and haven't yet had a chance to share it, we'd truly appreciate a quick review.\n\n${cta}\n\nA review is the most valuable thing you can give us right now, and we would be very grateful for your support.\n\nThank you so much for your time and continued support.`,
+5:`Dear ${P},\n\nWe're following up once again regarding your review.\n\nWe know how quickly things can get busy, so we wanted to make sure our earlier request didn't get overlooked. If you haven't had a chance yet, we would sincerely appreciate you taking a minute to share your review. It genuinely makes a difference for us.\n\n${cta}\n\nThank you for your time and continued trust in SkoolOfCode.`,
+7:`Dear Parent,\n\nJust checking in once more regarding our review request.\n\nIf you're happy with your experience at SkoolOfCode, we'd truly appreciate a quick review.\n\nLeave a Review: ${link}\n\nAlso, a quick reminder for today's class. Looking forward to seeing ${S} in class! 😊`,
+15:`Dear ${P},\n\nOne more ask. We've reached out a few times because your review genuinely matters to us. If you've been meaning to leave a review but haven't gotten around to it yet, we'd really appreciate it if you could do so today.\n\n${cta}\n\nThank you for being part of the SkoolOfCode community.`,
+30:`Dear ${P},\n\nThis is our final reminder regarding this review request. If this is working for your kid, a review is how you help us survive.\n\n${cta}\n\nThank you once again for choosing SkoolOfCode and for being a valued part of our community. We genuinely appreciate your support.\n\nWarm regards,\nTeam SkoolOfCode`};
+  return M[d];
+}
+function asks(){
+  const link="https://shorturl.at/esE58",f=$("from").value,t=$("to").value,a=[];
+  rows.forEach(r=>SEQ.forEach(([d,s,ty])=>{
+    const dt=new Date(r.date+"T00:00:00Z");dt.setUTCDate(dt.getUTCDate()+d);
+    const due=iso(dt);
+    if((!f||due>=f)&&(!t||due<=t))a.push({due,d,s,ty,r,text:msgText(d,r,link)});
+  }));
+  return a.sort((x,y)=>x.due.localeCompare(y.due)||x.d-y.d||x.r.cls.localeCompare(y.r.cls));
+}
+function render(){
+  const all=asks(),a=all.filter(x=>sender==="All"||x.s===sender);
+  const cnt=k=>all.filter(x=>x.s===k).length;
+  const groups={};a.forEach(x=>(groups[x.due]=groups[x.due]||[]).push(x));
+  let h=`<div class="st"><div class="k"><b>${all.length}</b><span>Total asks</span></div><div class="k"><b>${cnt("Teacher")}</b><span>Teacher asks</span></div><div class="k"><b>${cnt("Core Team")}</b><span>Core Team asks</span></div><div class="k"><b>${all.filter(x=>x.d===0).length}</b><span>New Day 0 asks</span></div></div>
+<div class="c"><div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">${["All","Teacher","Core Team"].map(s=>`<button class="${s===sender?"on":""}" data-s="${s}">${s}</button>`).join("")}<button id="cp" style="margin-left:auto">Copy as table</button></div>`;
+  if(!a.length)h+=`<p class="mu">No asks fall in this date range.</p>`;
+  else h+=`<div class="tw"><table><tr><th>Due</th><th>Day</th><th>Sender</th><th>Type</th><th>Class</th><th>Teacher</th><th></th></tr>`+
+    a.map((x,i)=>{const[c,n]=colour(x.d);return `<tr><td>${fmt(x.due)}</td><td><span class="d" style="background:${c}" title="${n}"></span>Day ${x.d}</td><td>${x.s}</td><td>${x.ty}</td><td>${esc(x.r.cls)}<div class="mu" style="font-size:12px">PD: ${fmt(x.r.date)}</div></td><td>${esc(x.r.teacher)}</td><td><button data-m="${all.indexOf(x)}">Message</button></td></tr><tr id="m${all.indexOf(x)}" hidden><td colspan="7"><div class="m">${esc(x.text)}</div><button data-c="${all.indexOf(x)}">Copy message</button></td></tr>`}).join("")+`</table></div>`;
+  h+=`</div>`;
+  $("out").innerHTML=h;
+  $("out").onclick=e=>{const b=e.target;
+    if(b.dataset.s){sender=b.dataset.s;render()}
+    if(b.dataset.m){const r=$("m"+b.dataset.m);r.hidden=!r.hidden}
+    if(b.dataset.c)cp(all[b.dataset.c].text,b);
+    if(b.id==="cp")cp(["Due\tDay\tSender\tType\tClass\tTeacher\tProgress Discussion"].concat(a.map(x=>[x.due,x.d,x.s,x.ty,x.r.cls,x.r.teacher,x.r.date].join("\t"))).join("\n"),b);
+  };
+}
+function cp(t,b){const o=b.textContent;const done=()=>{b.textContent="Copied";setTimeout(()=>b.textContent=o,1200)};
+  (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(done).catch(()=>{const x=document.createElement("textarea");x.value=t;document.body.appendChild(x);x.select();try{document.execCommand("copy");done()}catch(e){}x.remove()})}
+function esc(s){return String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]))}
+$("go").onclick=()=>{
+  rows=parse($("in").value);
+  if(!rows.length){$("msg").textContent="No records found. Each record needs a date line like 09/25/26.";$("out").innerHTML="";return}
+  $("msg").textContent=`${rows.length} progress discussions parsed.`;
+  try{localStorage.setItem("soc_in",$("in").value)}catch(e){}
+  render();
+};
+["from","to"].forEach(id=>$(id).onchange=()=>rows.length&&render());
+$("clr").onclick=()=>{$("from").value="";$("to").value="";rows.length&&render()};
+try{const v=localStorage.getItem("soc_in");if(v)$("in").value=v}catch(e){}
+</script></body></html>
