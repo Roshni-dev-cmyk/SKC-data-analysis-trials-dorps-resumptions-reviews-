@@ -100,9 +100,9 @@ tr:last-child td{border-bottom:0}
 </div>
 <div id="msg"></div>
 <nav class="secnav" id="secnav" hidden></nav>
-<div style="display:flex;gap:8px;margin:2px 0 10px"><button class="navbtn" id="expAll" type="button">Expand all</button><button class="navbtn" id="colAll" type="button">Collapse all</button></div>
+<div style="display:flex;gap:8px;margin:2px 0 10px;flex-wrap:wrap"><button class="navbtn" id="expAll" type="button">Expand all</button><button class="navbtn" id="colAll" type="button">Collapse all</button><button class="navbtn" id="dlAll" type="button" style="margin-left:auto;background:linear-gradient(135deg,var(--acc),var(--acc2,var(--acc)));color:#fff;border-color:transparent">⬇ Download full report (Word)</button></div>
 <div id="out"></div>
-<p style="text-align:center;margin-top:28px"><a href="review-asks.html" style="color:var(--acc);font-weight:600;text-decoration:none">Review asks →</a></p>
+<p style="text-align:center;margin-top:28px"><a href="review-asks.html" target="_blank" rel="noopener" style="color:var(--acc);font-weight:600;text-decoration:none">Review asks ↗</a></p>
 </main>
 
 <script>
@@ -164,7 +164,7 @@ var tCols=[['Trials',function(a){return a.length}],['Enrolled',cnt('enr')],['Los
 
 function insightsBox(items){
   if(!items.length)return '';
-  return '<div class="insights"><h4>💡 Auto insights (rule-based, no AI)</h4><ul>'+items.map(function(t){return '<li>'+t+'</li>'}).join('')+'</ul></div>';
+  return '<div class="insights"><h4>💡 Insights</h4><ul>'+items.map(function(t){return '<li>'+t+'</li>'}).join('')+'</ul></div>';
 }
 function groupBy(rows,keyFn){var g={};rows.forEach(function(r){var k=keyFn(r);(g[k]=g[k]||[]).push(r)});return g}
 function prevRange(from,to){
@@ -375,6 +375,75 @@ function organize(){
 }
 $('expAll').onclick=function(){$('out').querySelectorAll('details').forEach(function(d){d.open=true})};
 $('colAll').onclick=function(){$('out').querySelectorAll('details').forEach(function(d){d.open=false})};
+$('dlAll').onclick=function(){
+  if(!$('out').children.length){alert('Upload at least one CSV first.');return}
+  function esc2(t){return (t||'').replace(/[▲▼↕]/g,'').trim()}
+  function tableToWord(tbl){
+    var html='<table style="width:100%;border-collapse:collapse;margin:7pt 0 14pt;font-size:9.5pt;font-family:Calibri,Arial,sans-serif;" border="0" cellpadding="6">';
+    Array.prototype.forEach.call(tbl.rows,function(row,ri){
+      var isH=ri===0;
+      html+='<tr>'+Array.prototype.map.call(row.cells,function(c){
+        var tg=isH?'th':'td',al=(c.style&&c.style.textAlign)||'right';
+        var bg=isH?'#2454d6':(ri%2===0?'#f4f6fb':'#ffffff');
+        var color=isH?'#ffffff':'#16202e';
+        return '<'+tg+' style="background:'+bg+';color:'+color+';padding:5pt 8pt;text-align:'+al+';border-bottom:0.75pt solid #e2e7f0;font-weight:'+(isH?'bold':'normal')+';font-size:'+(isH?'8.5pt':'9.5pt')+';'+(isH?'text-transform:uppercase;letter-spacing:.3pt;':'')+'">'+esc2(c.textContent)+'</'+tg+'>';
+      }).join('')+'</tr>';
+    });
+    return html+'</table>';
+  }
+  function walk(node,parts){
+    if(!node||node.nodeType!==1)return;
+    var tag=node.tagName,cls=node.className||'';
+    if(tag==='H2'){parts.push('<table style="width:100%;border-collapse:collapse;margin-top:30pt;margin-bottom:10pt;" cellpadding="0" cellspacing="0"><tr>'+
+      '<td style="width:5pt;background:#2454d6;"></td>'+
+      '<td style="background:#eef2fb;padding:9pt 12pt;"><span style="font-size:15pt;font-weight:bold;color:#16202e;font-family:Calibri,Arial,sans-serif;">'+esc2(node.textContent)+'</span></td>'+
+      '</tr></table>');return}
+    if(tag==='P'&&cls.indexOf('note')>-1){parts.push('<p style="font-size:9.5pt;color:#5d6b7e;font-style:italic;margin:4pt 0 8pt;">'+node.innerHTML.replace(/<\/?b>/g,function(m){return m})+'</p>');return}
+    if(tag==='DIV'&&cls.indexOf('empty')>-1){parts.push('<p style="color:#5d6b7e;">'+esc2(node.textContent)+'</p>');return}
+    if(tag==='DIV'&&cls.indexOf('kpis')>-1){
+      var kpis=node.querySelectorAll('.kpi');
+      parts.push('<table style="width:100%;border-collapse:separate;border-spacing:5pt;margin:8pt 0;" cellpadding="0"><tr>');
+      Array.prototype.forEach.call(kpis,function(k){
+        var b=k.querySelector('b'),sp=k.querySelector('span'),cl=b&&b.className||'',bar=cl.indexOf('good')>-1?'#12805c':cl.indexOf('bad')>-1?'#c0392b':cl.indexOf('warn')>-1?'#b5750a':'#2454d6';
+        parts.push('<td style="text-align:center;border:1pt solid #e2e7f0;border-top:2.5pt solid '+bar+';background:#fbfcfe;padding:9pt 6pt;"><b style="font-size:16pt;color:#16202e;font-family:Calibri,Arial,sans-serif;">'+esc2(b?b.textContent:'')+'</b><br><span style="font-size:7.5pt;color:#5d6b7e;text-transform:uppercase;letter-spacing:.3pt;">'+esc2(sp?sp.textContent:'')+'</span></td>');
+      });
+      parts.push('</tr></table>');return;
+    }
+    if(tag==='DIV'&&cls.indexOf('insights')>-1){
+      parts.push('<table style="width:100%;border-collapse:collapse;margin:9pt 0;background:#f6f9ff;" cellpadding="0"><tr><td style="width:4pt;background:#2454d6;"></td><td style="padding:10pt 13pt;">');
+      parts.push('<b style="color:#2454d6;font-size:10.5pt;letter-spacing:.3pt;">✦ INSIGHTS</b><ul style="margin:7pt 0 0 14pt;padding:0;">');
+      node.querySelectorAll('li').forEach(function(li){parts.push('<li style="font-size:9.5pt;margin:3pt 0;">'+li.innerHTML+'</li>')});
+      parts.push('</ul></td></tr></table>');return;
+    }
+    if(tag==='DETAILS'){
+      var sum=node.querySelector('summary');
+      parts.push('<p style="font-size:11.5pt;font-weight:bold;color:#2454d6;margin:16pt 0 5pt;padding-bottom:2pt;border-bottom:0.75pt solid #cfd8ea;font-family:Calibri,Arial,sans-serif;">'+esc2(sum?sum.textContent:'')+'</p>');
+      Array.prototype.forEach.call(node.children,function(c){if(c!==sum)walk(c,parts)});
+      return;
+    }
+    if(tag==='DIV'&&cls.indexOf('wrap')>-1){var t=node.querySelector('table'); if(t)parts.push(tableToWord(t)); return}
+    if(tag==='TABLE'){parts.push(tableToWord(node));return}
+    Array.prototype.forEach.call(node.children,function(c){walk(c,parts)});
+  }
+  var parts=[];
+  Array.prototype.forEach.call($('out').children,function(c){walk(c,parts)});
+  var rangeTxt=($('from').value||'start')+'_to_'+($('to').value||'end');
+  var cover='<table style="width:100%;border-collapse:collapse;margin-bottom:6pt;" cellpadding="0"><tr>'+
+    '<td style="width:7pt;background:linear-gradient(#2454d6,#7c3aed);background:#2454d6;"></td>'+
+    '<td style="background:#16202e;padding:22pt 24pt;">'+
+    '<span style="font-size:22pt;color:#ffffff;font-family:Calibri,Arial,sans-serif;font-weight:bold;">📊 Trials, Dropouts &amp; Reviews Report</span><br>'+
+    '<span style="font-size:9.5pt;color:#b9c4d8;">Generated '+new Date().toLocaleString()+'  &nbsp;|&nbsp;  Range: '+rangeTxt.replace(/_/g,' ')+'</span>'+
+    '</td></tr></table>';
+  var body=cover+parts.join('\n');
+  var html='<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">'+
+    '<head><meta charset="utf-8"><title>Trials, Dropouts & Reviews Report</title>'+
+    '<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>90</w:Zoom><w:DoNotOptimizeForBrowser/></w:WordDocument></xml><![endif]-->'+
+    '<style>body{font-family:Calibri,Arial,sans-serif;color:#16202e;line-height:1.4;} table{border-collapse:collapse;} @page{margin:0.85in;}</style>'+
+    '</head><body>'+body+'</body></html>';
+  var blob=new Blob(['\ufeff',html],{type:'application/msword'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url; a.download='trials-dropouts-reviews-report_'+rangeTxt+'.doc'; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(function(){URL.revokeObjectURL(url)},1000);
+};
 
 function fmtIn(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 document.querySelectorAll('[data-p]').forEach(function(b){b.onclick=function(){
