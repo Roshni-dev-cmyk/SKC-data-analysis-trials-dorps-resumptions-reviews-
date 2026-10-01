@@ -4,54 +4,88 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Trials, Dropouts & Reviews Report</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Lexend:wght@600;700;800&display=swap">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <style>
-:root{--bg:#f3f5f8;--card:#fff;--ink:#16202e;--mute:#5d6b7e;--line:#dbe1ea;--acc:#1f5fd6;--good:#12805c;--bad:#b3341f;--warn:#a86a00;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1520;--card:#182131;--ink:#e8edf5;--mute:#93a1b6;--line:#2a374b;--acc:#6b9bff;--good:#4fce9d;--bad:#ff8a73;--warn:#f0b04a}}
-:root[data-theme="dark"]{--bg:#0f1520;--card:#182131;--ink:#e8edf5;--mute:#93a1b6;--line:#2a374b;--acc:#6b9bff;--good:#4fce9d;--bad:#ff8a73;--warn:#f0b04a}
-:root[data-theme="forest"]{--bg:#eef4ef;--card:#fff;--ink:#14261c;--mute:#586b5f;--line:#d3e0d6;--acc:#1d7a4a;--good:#12805c;--bad:#b3341f;--warn:#a86a00}
-:root[data-theme="plum"]{--bg:#f6f1f8;--card:#fff;--ink:#241530;--mute:#6b5a78;--line:#e2d6ea;--acc:#7b3fb0;--good:#12805c;--bad:#b3341f;--warn:#a86a00}
-.top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+:root{--bg:#eef1f7;--card:#fff;--ink:#16202e;--mute:#5d6b7e;--line:#dde3ed;--acc:#2454d6;--acc2:#7c3aed;--good:#12805c;--bad:#c0392b;--warn:#b5750a;--shadow:0 1px 2px rgba(20,30,50,.04),0 6px 16px -8px rgba(20,30,50,.10);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d1420;--card:#171f2e;--ink:#e8edf5;--mute:#93a1b6;--line:#2a374b;--acc:#7ca3ff;--acc2:#b79bff;--good:#4fce9d;--bad:#ff8a73;--warn:#f0b04a;--shadow:0 1px 2px rgba(0,0,0,.3),0 8px 20px -10px rgba(0,0,0,.5)}}
+:root[data-theme="dark"]{--bg:#0d1420;--card:#171f2e;--ink:#e8edf5;--mute:#93a1b6;--line:#2a374b;--acc:#7ca3ff;--acc2:#b79bff;--good:#4fce9d;--bad:#ff8a73;--warn:#f0b04a;--shadow:0 1px 2px rgba(0,0,0,.3),0 8px 20px -10px rgba(0,0,0,.5)}
+:root[data-theme="forest"]{--bg:#eaf2ec;--card:#fff;--ink:#14261c;--mute:#586b5f;--line:#d3e0d6;--acc:#1d7a4a;--acc2:#0f9d7c;--good:#12805c;--bad:#b3341f;--warn:#a86a00;--shadow:0 1px 2px rgba(20,40,30,.05),0 6px 16px -8px rgba(20,40,30,.12)}
+:root[data-theme="plum"]{--bg:#f5effa;--card:#fff;--ink:#241530;--mute:#6b5a78;--line:#e2d6ea;--acc:#7b3fb0;--acc2:#c0379d;--good:#12805c;--bad:#b3341f;--warn:#a86a00;--shadow:0 1px 2px rgba(60,20,70,.05),0 6px 16px -8px rgba(60,20,70,.14)}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 20px;box-shadow:var(--shadow)}
 .top select{width:auto}
+.brand{display:flex;align-items:center;gap:10px}
+.brand .mark{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--acc),var(--acc2,var(--acc)));display:flex;align-items:center;justify-content:center;font-size:19px;flex:none}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *,*:before,*:after{box-sizing:inherit}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;background-image:radial-gradient(circle at 10% -10%, color-mix(in srgb, var(--acc) 7%, transparent), transparent 45%)}
 main{max-width:1000px;margin:0 auto;padding:20px 16px 48px}
-h1{font-size:26px;margin:0 0 4px;letter-spacing:-.02em}
-h2{font-size:19px;margin:32px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--ink)}
+h1{font-family:"Lexend",system-ui,sans-serif;font-size:21px;margin:0;letter-spacing:-.01em;line-height:1.2}
+h1 span{display:block;font-family:"Public Sans";font-size:12px;font-weight:500;color:var(--mute);margin-top:2px}
+h2{font-family:"Lexend",system-ui,sans-serif;font-size:19px;font-weight:700;margin:36px 0 12px;padding-bottom:9px;border-bottom:2px solid var(--line);scroll-margin-top:62px;display:flex;align-items:center;gap:9px;color:var(--ink)}
+h2:before{content:"";width:5px;height:20px;border-radius:3px;background:linear-gradient(var(--acc),var(--acc2,var(--acc)))}
+.secnav{position:sticky;top:calc(env(safe-area-inset-top,0px) + 4px);z-index:5;display:flex;gap:7px;overflow-x:auto;background:color-mix(in srgb, var(--bg) 85%, transparent);backdrop-filter:blur(6px);padding:10px 4px;margin:4px -4px;border-bottom:1px solid var(--line)}
+.secnav a{flex:none;font-size:13px;font-weight:600;padding:6px 14px;border-radius:999px;background:var(--card);border:1px solid var(--line);color:var(--mute);text-decoration:none;white-space:nowrap;box-shadow:var(--shadow);transition:all .15s}
+.secnav a:hover{border-color:var(--acc);color:var(--acc)}
+.secnav a.on{background:linear-gradient(135deg,var(--acc),var(--acc2,var(--acc)));color:#fff;border-color:transparent}
+.navbtn{font-size:12px;padding:4px 10px}
+details{background:var(--card);border:1px solid var(--line);border-radius:12px;margin:12px 0;overflow:hidden;box-shadow:var(--shadow)}
+details>*:not(summary){padding:0 12px 12px}
+details[open] summary{border-bottom:1px solid var(--line)}
+summary{list-style:none;cursor:pointer;padding:12px 14px;font-size:14px;font-weight:600;color:var(--ink);display:flex;align-items:center;gap:7px;transition:background .15s}
+summary:hover{background:color-mix(in srgb, var(--acc) 6%, transparent)}
+summary::-webkit-details-marker{display:none}
+summary:before{content:'▸';font-size:11px;transition:transform .15s;color:var(--acc)}
+details[open] summary:before{transform:rotate(90deg)}
+
 h3{font-size:14px;margin:18px 0 6px;color:var(--mute);font-weight:600}
 .sub{color:var(--mute);margin:0 0 18px}
-.panel{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
-label{display:block;font-weight:600;font-size:13px;margin-bottom:4px}
-input,select{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));box-shadow:var(--shadow);margin-top:16px}
+label{display:block;font-weight:600;font-size:12.5px;margin-bottom:5px;color:var(--mute);text-transform:uppercase;letter-spacing:.03em}
+input,select{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:8px;padding:9px 10px;transition:border-color .15s}
+input:hover,select:hover{border-color:color-mix(in srgb, var(--acc) 50%, var(--line))}
 input:focus,select:focus,button:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
 .fname{font-size:12px;color:var(--mute);margin-top:4px;word-break:break-all}
-.presets{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 0}
-button{font:inherit;font-size:13px;padding:6px 12px;border-radius:6px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
-button:hover{border-color:var(--acc)}
-.kpis{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}
-.kpi{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
-.kpi b{display:block;font-size:24px;line-height:1.2}
-.kpi span{font-size:12px;color:var(--mute)}
-.wrap{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:8px}
+.presets{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 0}
+button{font:inherit;font-weight:600;font-size:13px;padding:7px 14px;border-radius:999px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer;transition:all .15s;box-shadow:var(--shadow)}
+button:hover{border-color:var(--acc);color:var(--acc);transform:translateY(-1px)}
+.kpis{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));margin:14px 0}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 14px;box-shadow:var(--shadow);position:relative;overflow:hidden;transition:transform .15s}
+.kpi:hover{transform:translateY(-2px)}
+.kpi:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--acc)}
+.kpi:has(b.good):before{background:var(--good)}
+.kpi:has(b.bad):before{background:var(--bad)}
+.kpi:has(b.warn):before{background:var(--warn)}
+.kpi b{display:block;font-family:"Lexend",system-ui,sans-serif;font-size:25px;line-height:1.2;font-weight:700}
+.kpi span{font-size:11.5px;color:var(--mute);font-weight:500}
+.wrap{overflow-x:auto;background:var(--card);border-radius:10px}
 table{border-collapse:collapse;width:100%;font-size:13.5px}
-th,td{padding:7px 10px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line)}
+tbody tr:nth-child(even){background:color-mix(in srgb, var(--mute) 5%, transparent)}
+tbody tr:hover{background:color-mix(in srgb, var(--acc) 7%, transparent)}
+th,td{padding:9px 12px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line)}
+th.sortable{cursor:pointer;user-select:none}
+th.sortable:hover{color:var(--ink)}
+.arrow{opacity:.45;font-size:11px;margin-left:4px}
+th.sortable.active .arrow{opacity:1;color:var(--acc)}
 th:first-child,td:first-child{text-align:left;white-space:normal}
-th{font-weight:600;color:var(--mute);background:var(--bg)}
+th{font-weight:700;color:var(--mute);background:color-mix(in srgb, var(--mute) 7%, var(--card));font-size:11.5px;text-transform:uppercase;letter-spacing:.03em}
 tr:last-child td{border-bottom:0}
 .good{color:var(--good)}.bad{color:var(--bad)}.warn{color:var(--warn)}
 .note{font-size:12.5px;color:var(--mute);margin:6px 0}
-.empty{padding:14px;color:var(--mute);background:var(--card);border:1px dashed var(--line);border-radius:8px}
+.empty{padding:18px;color:var(--mute);background:var(--card);border:1.5px dashed var(--line);border-radius:12px;text-align:center}
+.insights{background:linear-gradient(135deg,color-mix(in srgb, var(--acc) 9%, var(--card)),color-mix(in srgb, var(--acc2,var(--acc)) 6%, var(--card)));border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:14px 0;box-shadow:var(--shadow)}
+.insights h4{margin:0 0 8px;font-size:12.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--acc);font-weight:700;display:flex;align-items:center;gap:6px}
+.insights ul{margin:0;padding-left:18px;display:grid;gap:5px}
+.insights li{font-size:13.5px;line-height:1.45}
+.insights b{color:var(--ink)}
 [hidden]{display:none!important}
 #msg{margin-top:12px;color:var(--bad);font-size:13px}
 </style>
 </head>
 <body>
 <main>
-<div class="top"><h1>Trials, dropouts & reviews report</h1>
+<div class="top"><div class="brand"><div class="mark">📊</div><h1>Trials, Dropouts &amp; Reviews<span>Upload your CSVs, pick a date range — counts update instantly. Files stay in your browser.</span></h1></div>
 <select id="theme" aria-label="Theme"><option value="auto">Auto</option><option value="light">Light</option><option value="dark">Dark</option><option value="forest">Forest</option><option value="plum">Plum</option></select></div>
-<p class="sub">Upload your two CSV exports, pick a date range, and the counts update instantly. Files stay in your browser.</p>
 
 <div class="panel">
   <div><label for="fT">Trials CSV</label><input type="file" id="fT" accept=".csv"><div class="fname" id="nT">No file yet</div></div>
@@ -59,21 +93,21 @@ tr:last-child td{border-bottom:0}
   <div><label for="fR">Reviews CSV (Google + Trustpilot)</label><input type="file" id="fR" accept=".csv"><div class="fname" id="nR">No file yet</div></div>
   <div><label for="from">From</label><input type="date" id="from"></div>
   <div><label for="to">To</label><input type="date" id="to"></div>
-  <div><label for="tf">Filter trials by</label>
-    <select id="tf"><option>Trial Date</option><option>Conversion Date</option><option>Inquiry Date</option></select></div>
-  <div><label for="df">Filter dropouts by</label>
-    <select id="df"><option value="Dropout Month">Dropout month</option><option value="Follow-up Date">Follow-up date</option><option value="Resumption Date">Resumption date</option></select></div>
 </div>
 <div class="presets">
   <button data-p="7">Last 7 days</button><button data-p="30">Last 30 days</button>
   <button data-p="month">This month</button><button data-p="lastmonth">Last month</button><button data-p="all">All dates</button>
 </div>
 <div id="msg"></div>
+<nav class="secnav" id="secnav" hidden></nav>
+<div style="display:flex;gap:8px;margin:2px 0 10px"><button class="navbtn" id="expAll" type="button">Expand all</button><button class="navbtn" id="colAll" type="button">Collapse all</button></div>
 <div id="out"></div>
+<p style="text-align:center;margin-top:28px"><a href="review-asks.html" style="color:var(--acc);font-weight:600;text-decoration:none">Review asks →</a></p>
 </main>
-<a href="review-asks.html" target="_blank">Review Asks Made</a>
+
 <script>
 var T=[],D=[],R=[];
+function slug(s){return s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'')}
 function setTheme(t){
   var r=document.documentElement; if(t==='auto')r.removeAttribute('data-theme'); else r.setAttribute('data-theme',t);
   try{localStorage.setItem('theme',t)}catch(e){}
@@ -128,6 +162,25 @@ function cnt(s){return function(a){return a.filter(function(r){return stat(r['St
 var tCols=[['Trials',function(a){return a.length}],['Enrolled',cnt('enr')],['Lost',cnt('lost')],['Did not join',cnt('dnj')],['Trial Booked',cnt('bkd')],['Trial Completed',cnt('cmp')],
   ['Conv. rate',function(a){var e=cnt('enr')(a);return pct(e,e+cnt('lost')(a)+cnt('dnj')(a))}]];
 
+function insightsBox(items){
+  if(!items.length)return '';
+  return '<div class="insights"><h4>💡 Auto insights (rule-based, no AI)</h4><ul>'+items.map(function(t){return '<li>'+t+'</li>'}).join('')+'</ul></div>';
+}
+function groupBy(rows,keyFn){var g={};rows.forEach(function(r){var k=keyFn(r);(g[k]=g[k]||[]).push(r)});return g}
+function prevRange(from,to){
+  if(!from||!to)return null;
+  var days=Math.round((to-from)/864e5)+1;
+  var pTo=new Date(from); pTo.setDate(pTo.getDate()-1);
+  var pFrom=new Date(pTo); pFrom.setDate(pFrom.getDate()-(days-1));
+  return [pFrom,pTo];
+}
+function trend(curr,prevCount){
+  if(prevCount==null)return '';
+  if(!prevCount)return curr>0?' This is up from 0 in the previous equal-length period.':'';
+  var d=curr-prevCount, pct=Math.abs(d/prevCount*100).toFixed(0);
+  if(d===0)return ' That\'s flat versus the previous equal-length period.';
+  return d>0?' That\'s up '+pct+'% versus the previous equal-length period ('+prevCount+').':' That\'s down '+pct+'% versus the previous equal-length period ('+prevCount+').';
+}
 function run(){
   var from=inp('from'),to=inp('to'),out='',msg='';
   if(from&&to&&from>to){$('msg').textContent='The start date is after the end date.';return}
@@ -136,60 +189,98 @@ function run(){
   var range=(from?$('from').value:'start')+' to '+(to?$('to').value:'end');
 
   /* ---------- TRIALS ---------- */
-  out+='<h2>Trials</h2>';
+  out+='<h2>🎓 Trials</h2>';
   if(!T.length){out+='<div class="empty">Upload the trials CSV to see this section.</div>'}
   else{
-    var f=$('tf').value, bad=0;
+    var f='Trial Date', bad=0;
     var rows=T.filter(function(r){var d=pd(r[f]); if(!d){bad++;return false} return inR(d)});
     var e=cnt('enr')(rows),l=cnt('lost')(rows),n=cnt('dnj')(rows),bk=cnt('bkd')(rows),cm=cnt('cmp')(rows);
-    out+='<p class="note">Filtered on <b>'+esc(f)+'</b>, '+range+'. Conversion rate = Enrolled ÷ (Enrolled + Lost + Did not join); Trial Booked and Trial Completed are still undecided, so they are left out of the rate.'+(bad?' '+bad+' row(s) have no usable '+esc(f)+' and are not counted.':'')+'</p>';
-    out+=kpis([[rows.length,'Trials'],[e,'Enrolled','good'],[l,'Lost','bad'],[n,'Did not join','bad'],[bk,'Trial Booked','warn'],[cm,'Trial Completed','warn'],[pct(e,e+l+n),'Conversion rate']]);
+    out+='<p class="note">Filtered on <b>'+esc(f)+'</b>, '+range+'. Conversion rate = Enrolled ÷ (Enrolled + Lost + Did not join). Trial Booked (trial hasn’t happened yet) and Trial Completed (trial is done, still in follow-up) are both pending an outcome, so they’re left out of the rate.'+(bad?' '+bad+' row(s) have no usable '+esc(f)+' and are not counted.':'')+'</p>';
+    out+=kpis([[rows.length,'Trials'],[e,'Enrolled','good'],[l,'Lost','bad'],[n,'Did not join','bad'],[bk,'Trial Booked (upcoming)','warn'],[cm,'Trial Completed (in follow-up)','warn'],[pct(e,e+l+n),'Conversion rate']]);
     if(rows.length){
-      out+='<h3>By status</h3>'+table(rows,function(r){var s=(r['Status']||'').trim();return s||'No status'},[['Trials',function(a){return a.length}],['Share',function(a){return pct(a.length,rows.length)}]]);
+      var tIns=[];
+      var pv=prevRange(from,to); if(pv){var pc=T.filter(function(r){var d=pd(r[f]);return d&&d>=pv[0]&&d<=pv[1]}).length; tIns.push('<b>'+rows.length+'</b> trials in range.'+trend(rows.length,pc))}
+      var bySrc=groupBy(rows,function(r){return nSource(r['Acquisition Source'])});
+      var srcRanked=Object.keys(bySrc).filter(function(k){return bySrc[k].length>=3}).map(function(k){var a=bySrc[k],ee=cnt('enr')(a),ll=cnt('lost')(a),nn=cnt('dnj')(a);return{k:k,n:a.length,rate:(ee+ll+nn)?ee/(ee+ll+nn):0}}).sort(function(a,b){return b.rate-a.rate});
+      if(srcRanked.length){var top=srcRanked[0],bot=srcRanked[srcRanked.length-1];
+        tIns.push('<b>'+esc(top.k)+'</b> converts best among sources with 3+ trials, at '+(top.rate*100).toFixed(0)+'% ('+top.n+' trials).');
+        if(srcRanked.length>1&&bot.k!==top.k)tIns.push('<b>'+esc(bot.k)+'</b> converts worst, at '+(bot.rate*100).toFixed(0)+'% ('+bot.n+' trials).');
+      }
+      var byInt=groupBy(rows,function(r){return nInterest(r['Interest Area'])}),intTop=Object.keys(byInt).sort(function(a,b){return byInt[b].length-byInt[a].length})[0];
+      if(intTop)tIns.push('<b>'+esc(intTop)+'</b> is the most common interest area, with '+byInt[intTop].length+' trial(s) ('+pct(byInt[intTop].length,rows.length)+').');
+      var undecided=bk+cm;
+      if(undecided)tIns.push(undecided+' trial(s) are still pending an outcome — '+bk+' booked (yet to happen) and '+cm+' completed (in follow-up) — '+pct(undecided,rows.length)+' of this range.');
+      out+=insightsBox(tIns);
       out+='<h3>By acquisition source</h3>'+table(rows,function(r){return nSource(r['Acquisition Source'])},tCols);
       out+='<h3>By teacher</h3>'+table(rows,function(r){return nTeacher(r['Assigned To'])},tCols);
       out+='<h3>By interest area</h3>'+table(rows,function(r){return nInterest(r['Interest Area'])},tCols);
+      var tsRows=rows.slice().sort(function(a,b){return nTeacher(a['Assigned To']).localeCompare(nTeacher(b['Assigned To']))});
+      out+='<h3>Trial students</h3><p class="note">Every trial in range, with teacher, source and status together.</p><div class="wrap"><table><tr><th style="text-align:left">Student</th><th style="text-align:left">Teacher</th><th style="text-align:left">Source</th><th style="text-align:left">Interest area</th><th style="text-align:left">Status</th></tr>'+
+        tsRows.map(function(r){var st=(r['Status']||'').trim()||'No status';var cl=st.toLowerCase()==='enrolled'?'good':st.toLowerCase()==='lost'||st.toLowerCase()==='did not join'?'bad':'warn';
+          return '<tr><td style="text-align:left">'+esc((r['Student']||r['Student Name']||'').trim())+'</td><td style="text-align:left">'+esc(nTeacher(r['Assigned To']))+'</td><td style="text-align:left">'+esc(nSource(r['Acquisition Source']))+'</td><td style="text-align:left">'+esc(nInterest(r['Interest Area']))+'</td><td style="text-align:left" class="'+cl+'">'+esc(st)+'</td></tr>'}).join('')+'</table></div>';
     } else out+='<div class="empty" style="margin-top:12px">No trials fall in this range.</div>';
   }
 
-  /* ---------- DROPOUTS / RESUMPTIONS (one at a time) ---------- */
-  var df=$('df').value, resMode=df==='Resumption Date', dbad=0;
-  out+='<h2>'+(resMode?'Resumptions':'Dropouts')+'</h2>';
+  /* ---------- DROPOUTS ---------- */
+  var dbad=0;
+  out+='<h2>📉 Dropouts</h2>';
   var isHold=function(r){return (r['Status']||'').trim().toLowerCase()==='hold'};
   var isDisc=function(r){return (r['Status']||'').trim().toLowerCase()==='discontinue'};
   var ltv=function(a){return a.reduce(function(s,r){return s+money(r['Total Amount'])},0)};
+  var lm=function(r){var n=parseFloat(String(r['Life Time']||'').replace(/[^0-9.]/g,'')); return isNaN(n)?0:n};
+  var avgLM=function(a){var v=a.filter(function(r){return lm(r)>0}); return v.length?(v.reduce(function(s,r){return s+lm(r)},0)/v.length):0};
   var mKey=function(m){return m.getFullYear()+'-'+String(m.getMonth()+1).padStart(2,'0')};
   if(!D.length){out+='<div class="empty">Upload the dropouts CSV to see this section.</div>'}
-  else if(resMode){
-    var rs=D.filter(function(r){var d=pd(r['Resumption Date']); if(!d){dbad++;return false} return inR(d)});
-    out+='<p class="note">Students whose <b>Resumption Date</b> falls in '+range+'. Students with no Resumption Date are not counted.</p>';
-    out+=kpis([[rs.length,'Students resumed','good'],[fmt$(ltv(rs)),'Lifetime value of these students']]);
-    if(rs.length){
-      out+='<h3>Students who resumed</h3><div class="wrap"><table><tr><th>Student</th><th>Module</th><th>Resumption date</th></tr>'+
-        rs.map(function(r){return '<tr><td>'+esc(r['Student Name']||'')+'</td><td>'+esc(nModule(r['Module']))+'</td><td>'+esc(r['Resumption Date'])+'</td></tr>'}).join('')+'</table></div>';
-    } else out+='<div class="empty" style="margin-top:12px">No resumptions in this range. Check that the Resumption Date column is filled in.</div>';
-  }
   else{
-    var dOf=function(r){return df==='Dropout Month'?(pd(r['Dropout Month'])||pd(r['Left Month'])):pd(r[df])};
+    var dOf=function(r){return pd(r['Dropout Month'])||pd(r['Left Month'])};
     var dr=D.filter(function(r){
       var m=dOf(r); if(!m){dbad++;return false}
-      if(df!=='Dropout Month')return inR(m);
       var end=new Date(m.getFullYear(),m.getMonth()+1,0);
       return (!from||end>=from)&&(!to||m<=to);
     });
     var hold=dr.filter(isHold).length,disc=dr.filter(isDisc).length;
-    out+='<p class="note">Filtered on <b>'+esc(df)+'</b>, '+range+'.'+(df==='Dropout Month'?' Dropout dates are recorded by month, so any student whose dropout month overlaps the range is included.':'')+(dbad?' '+dbad+' student(s) have no usable '+esc(df)+' and are not counted.':'')+' Lifetime value is each student’s total spend.</p>';
-    out+=kpis([[dr.length,'Students dropped'],[hold,'On hold','warn'],[disc,'Discontinued','bad'],[fmt$(ltv(dr)),'Lifetime value of these students']]);
+    out+='<p class="note">Filtered on <b>Dropout Month</b>, '+range+'. Dropout dates are recorded by month, so any student whose dropout month overlaps the range is included.'+(dbad?' '+dbad+' student(s) have no usable dropout month and are not counted.':'')+' Lifetime value is each student’s total spend.</p>';
+    out+=kpis([[dr.length,'Students dropped'],[hold,'On hold','warn'],[disc,'Discontinued','bad'],[fmt$(ltv(dr)),'Total lifetime value'],[avgLM(dr).toFixed(1)+' mo','Average lifetime']]);
     if(dr.length){
-      var dc=[['Students',function(a){return a.length}],['Hold',function(a){return a.filter(isHold).length}],['Discontinued',function(a){return a.filter(isDisc).length}],['Lifetime value',function(a){return fmt$(ltv(a))}]];
-      out+='<h3>By month ('+esc(df)+')</h3>'+table(dr,function(r){return mKey(dOf(r))},dc);
+      var dIns=[];
+      var pvd=prevRange(from,to); if(pvd){var pdc=D.filter(function(r){var m=pd(r['Dropout Month'])||pd(r['Left Month']); if(!m)return false; var end=new Date(m.getFullYear(),m.getMonth()+1,0); return end>=pvd[0]&&m<=pvd[1]}).length; dIns.push('<b>'+dr.length+'</b> students dropped.'+trend(dr.length,pdc))}
+      dIns.push('<b>'+pct(hold,dr.length)+'</b> are on hold and <b>'+pct(disc,dr.length)+'</b> discontinued.');
+      var byMod=groupBy(dr,function(r){return nModule(r['Module'])}),modTop=Object.keys(byMod).sort(function(a,b){return byMod[b].length-byMod[a].length})[0];
+      if(modTop)dIns.push('<b>'+esc(modTop)+'</b> has the most dropouts in range, with '+byMod[modTop].length+'.');
+      var hv=dr.slice().sort(function(a,b){return money(b['Total Amount'])-money(a['Total Amount'])})[0];
+      if(hv)dIns.push('Highest lifetime value lost: <b>'+esc(hv['Student Name']||'')+'</b> at '+fmt$(money(hv['Total Amount']))+'.');
+      out+=insightsBox(dIns);
+      var dc=[['Students',function(a){return a.length}],['Hold',function(a){return a.filter(isHold).length}],['Discontinued',function(a){return a.filter(isDisc).length}],['Lifetime value',function(a){return fmt$(ltv(a))}],['Avg lifetime (mo)',function(a){return avgLM(a).toFixed(1)}]];
+      out+='<h3>By month</h3>'+table(dr,function(r){return mKey(dOf(r))},dc);
       out+='<h3>By module</h3>'+table(dr,function(r){return nModule(r['Module'])},dc);
       out+='<h3>By teacher</h3>'+table(dr,function(r){return nTeacher(r['Teacher'])},dc);
-      out+='<h3>By reason category</h3>'+table(dr,function(r){return nCat(r['Comment Category'])},dc);
+      var drSorted=dr.slice().sort(function(a,b){return money(b['Total Amount'])-money(a['Total Amount'])});
+      out+='<h3>Students who dropped</h3><div class="wrap"><table><tr><th style="text-align:left">Student</th><th style="text-align:left">Module</th><th style="text-align:left">Teacher</th><th style="text-align:left">Status</th><th>Lifetime (months)</th><th>Lifetime value</th></tr>'+
+        drSorted.map(function(r){var st=(r['Status']||'').trim()||'No status';var cl=st.toLowerCase()==='hold'?'warn':st.toLowerCase()==='discontinue'?'bad':'';
+          return '<tr><td style="text-align:left">'+esc(r['Student Name']||'')+'</td><td style="text-align:left">'+esc(nModule(r['Module']))+'</td><td style="text-align:left">'+esc(nTeacher(r['Teacher']))+'</td><td style="text-align:left" class="'+cl+'">'+esc(st)+'</td><td>'+(lm(r)||'–')+'</td><td>'+fmt$(money(r['Total Amount']))+'</td></tr>'}).join('')+'</table></div>';
     } else out+='<div class="empty" style="margin-top:12px">No dropouts fall in this range.</div>';
   }
+
+  /* ---------- RESUMPTIONS ---------- */
+  out+='<h2>🔄 Resumptions</h2>';
+  if(!D.length){out+='<div class="empty">Upload the dropouts CSV to see this section.</div>'}
+  else{
+    var rs=D.filter(function(r){var d=pd(r['Resumption Date']); return inR(d)});
+    out+='<p class="note">Students whose <b>Resumption Date</b> falls in '+range+'. Students with no Resumption Date are not counted.</p>';
+    out+=kpis([[rs.length,'Students resumed','good'],[fmt$(ltv(rs)),'Total lifetime value'],[avgLM(rs).toFixed(1)+' mo','Average lifetime']]);
+    if(rs.length){
+      var rIns=[];
+      var drCountSameRange=D.filter(function(r){var m=pd(r['Dropout Month'])||pd(r['Left Month']); if(!m)return false; var end=new Date(m.getFullYear(),m.getMonth()+1,0); return (!from||end>=from)&&(!to||m<=to)}).length;
+      rIns.push('<b>'+rs.length+'</b> students resumed in range'+(drCountSameRange?', versus '+drCountSameRange+' dropped in the same window ('+pct(rs.length,drCountSameRange)+' resumption rate).':'.'));
+      var byModR=groupBy(rs,function(r){return nModule(r['Module'])}),modTopR=Object.keys(byModR).sort(function(a,b){return byModR[b].length-byModR[a].length})[0];
+      if(modTopR)rIns.push('<b>'+esc(modTopR)+'</b> has the most resumptions, with '+byModR[modTopR].length+'.');
+      out+=insightsBox(rIns);
+      out+='<h3>Students who resumed</h3><div class="wrap"><table><tr><th style="text-align:left">Student</th><th style="text-align:left">Module</th><th style="text-align:left">Resumption date</th><th>Lifetime (months)</th><th>Lifetime value</th></tr>'+
+        rs.map(function(r){return '<tr><td style="text-align:left">'+esc(r['Student Name']||'')+'</td><td style="text-align:left">'+esc(nModule(r['Module']))+'</td><td style="text-align:left">'+esc(r['Resumption Date'])+'</td><td>'+(lm(r)||'–')+'</td><td>'+fmt$(money(r['Total Amount']))+'</td></tr>'}).join('')+'</table></div>';
+    } else out+='<div class="empty" style="margin-top:12px">No resumptions in this range. Check that the Resumption Date column is filled in.</div>';
+  }
   /* ---------- REVIEWS ---------- */
-  out+='<h2>Reviews</h2>';
+  out+='<h2>⭐ Reviews</h2>';
   if(!R.length){out+='<div class="empty">Upload the reviews CSV to see this section.</div>'}
   else{
     var everything=!from&&!to,ev=[],undated={Google:0,Trustpilot:0},title=function(t){return t.toLowerCase().replace(/(^|\s)\S/g,function(c){return c.toUpperCase()})};
@@ -209,6 +300,11 @@ function run(){
     out+=kpis([[ev.length,'Total reviews'],[g,'Google','good'],[tp,'Trustpilot','good']]);
     var ks=Object.keys(by).sort(function(a,b){return by[b].n-by[a].n||a.localeCompare(b)});
     if(ks.length){
+      var rvIns=[];
+      rvIns.push('<b>'+ev.length+'</b> dated reviews in range: '+pct(g,ev.length)+' Google, '+pct(tp,ev.length)+' Trustpilot.');
+
+      if(un)rvIns.push(un+' review(s) marked "Yes" have no date and are excluded from this range — fill those dates in for a fuller picture.');
+      out+=insightsBox(rvIns);
       out+='<h3>By teacher</h3><div class="wrap"><table><tr><th>Teacher</th><th>Google</th><th>Trustpilot</th><th>Total</th></tr>'+
         ks.map(function(k){var e=by[k];return '<tr><td>'+esc(k)+'</td><td>'+e.Google+'</td><td>'+e.Trustpilot+'</td><td><b>'+e.n+'</b></td></tr>'}).join('')+'</table></div>';
       ev.sort(function(a,b){return (b.d?+b.d:0)-(a.d?+a.d:0)});
@@ -217,7 +313,68 @@ function run(){
     } else out+='<div class="empty" style="margin-top:12px">No dated reviews fall in this range.</div>';
   }
   $('out').innerHTML=out;
+  organize();
 }
+function makeSortable(box){
+  box.querySelectorAll('table').forEach(function(tbl){
+    var head=tbl.rows[0]; if(!head)return;
+    Array.prototype.forEach.call(head.cells,function(th,idx){
+      th.classList.add('sortable');
+      var ar=document.createElement('span'); ar.className='arrow'; ar.textContent='↕'; th.appendChild(ar);
+      th.onclick=function(){sortTable(tbl,idx)};
+    });
+  });
+}
+function sortTable(tbl,idx){
+  var head=tbl.rows[0];
+  var body=tbl.tBodies[0]||tbl, rows=Array.prototype.slice.call(body.rows).filter(function(r){return r!==head});
+  var wasAsc=tbl.dataset.sortCol==idx&&tbl.dataset.sortDir==='asc';
+  var asc=!wasAsc;
+  var numRe=/^[-+]?\$?\s*[\d,.]+\s*%?\s*(mo|months?)?$/i;
+  rows.sort(function(a,b){
+    var x=a.cells[idx].textContent.trim(), y=b.cells[idx].textContent.trim();
+    var bothNum=numRe.test(x)&&numRe.test(y);
+    if(bothNum){
+      var nx=parseFloat(x.replace(/[^0-9.\-]/g,''))||0, ny=parseFloat(y.replace(/[^0-9.\-]/g,''))||0;
+      return asc?nx-ny:ny-nx;
+    }
+    return asc?x.localeCompare(y):y.localeCompare(x);
+  });
+  rows.forEach(function(r){body.appendChild(r)});
+  tbl.dataset.sortCol=idx; tbl.dataset.sortDir=asc?'asc':'desc';
+  Array.prototype.forEach.call(tbl.rows[0].cells,function(th,i){
+    th.classList.toggle('active',i===idx);
+    var ar=th.querySelector('.arrow'); if(ar)ar.textContent=i===idx?(asc?'▲':'▼'):'↕';
+  });
+}
+function organize(){
+  var box=$('out'),kids=[].slice.call(box.children),frag=document.createDocumentFragment(),i=0;
+  while(i<kids.length){
+    var el=kids[i];
+    if(el.tagName==='H3'){
+      var det=document.createElement('details'),sum=document.createElement('summary');
+      sum.textContent=el.textContent; det.appendChild(sum); i++;
+      while(i<kids.length&&kids[i].tagName!=='H3'&&kids[i].tagName!=='H2'){det.appendChild(kids[i]);i++}
+      frag.appendChild(det);
+    } else {frag.appendChild(el);i++}
+  }
+  box.innerHTML=''; box.appendChild(frag);
+  makeSortable(box);
+  var h2s=[].slice.call(box.querySelectorAll('h2')),nav=$('secnav');
+  if(!h2s.length){nav.hidden=true;nav.innerHTML='';return}
+  nav.hidden=false;
+  nav.innerHTML=h2s.map(function(h){var id=slug(h.textContent);h.id=id;return '<a href="#'+id+'">'+h.textContent+'</a>'}).join('');
+  if(window._io)window._io.disconnect();
+  window._io=new IntersectionObserver(function(entries){
+    entries.forEach(function(en){
+      var a=nav.querySelector('a[href="#'+en.target.id+'"]'); if(!a)return;
+      if(en.isIntersecting)nav.querySelectorAll('a').forEach(function(x){x.classList.remove('on')}),a.classList.add('on');
+    });
+  },{rootMargin:'-20% 0px -70% 0px'});
+  h2s.forEach(function(h){window._io.observe(h)});
+}
+$('expAll').onclick=function(){$('out').querySelectorAll('details').forEach(function(d){d.open=true})};
+$('colAll').onclick=function(){$('out').querySelectorAll('details').forEach(function(d){d.open=false})};
 
 function fmtIn(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 document.querySelectorAll('[data-p]').forEach(function(b){b.onclick=function(){
@@ -228,7 +385,8 @@ document.querySelectorAll('[data-p]').forEach(function(b){b.onclick=function(){
   else f=new Date(t.getFullYear(),t.getMonth(),t.getDate()-(+p-1));
   $('from').value=fmtIn(f);$('to').value=fmtIn(e);run();
 }});
-['from','to','tf','df'].forEach(function(i){$(i).onchange=run});
+function tsSort(k){if(tSort.key===k)tSort.dir*=-1;else{tSort.key=k;tSort.dir=1} run()}
+['from','to'].forEach(function(i){$(i).onchange=run});
 run();
 </script>
 </body>
